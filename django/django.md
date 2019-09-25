@@ -34,7 +34,6 @@
 pip install django
 	pip install django==1.11.7   一定要使用==
 	pip install django==1.11.7 -i https://pypi.douban.com/simple  豆瓣源
-	pip install django==1.11.7 -i https://pypi.douban.com/simple  豆瓣源
 查看django是否安装成功
     pip freeze
     pip list
@@ -152,6 +151,110 @@ django的工作机制
 如果找到则会调用相关的视图函数，并把HttpRequest对象作为第一个参数（通常是request）
 
 4.最后该view函数负责返回一个HttpResponse对象
+```
+
+模板显示
+
+```
+先挖坑
+	{{ var }}
+再填坑
+	渲染模板的时候传递上下文进来 [上下文是一个字典]
+	content = {'key':'value'}
+模板的兼容性很强
+	不传入不会报错，多传入也会自动优化掉
+浏览器不认模板
+	浏览器也叫做html解析器，只识别html文件
+	在到达浏览器之前，已经进行了转换，将模板语言转换成了html
+for支持
+	{% for %}
+render底层实现：应用场景-发送邮件，邮件的内容需要使用render方法来操作
+	加载
+		three_index = loader.get_template('three.html')
+		content = {'xxx':'xxxx'}
+	渲染
+		result = three_index.render(content=content)
+		return HttpResponse(result)
+```
+
+修改数据库
+
+```
+在settings中的DATABASE中进行修改，实际上都是关系型数据库
+mysql
+	'ENGINE':'django.db.backends.mysql',
+	NAME 数据库名字
+	USER 用户名字
+	PASSWORDD 密码
+	HOST 主机
+	PORT 端口号
+```
+
+DML
+
+```
+迁移
+	生成迁移
+		python manage.py makemigrations
+	执行迁移
+		python manage.py migrate
+ORM
+	Object relational Mapping 对象关系映射
+	将业务逻辑和sql进行了一个接耦合，通过models定义实现数据库表的定义
+模型定义
+	-继承models.Model
+	-会自动添加主键列
+	-必须指定字符串类型属性的长度
+		class Stident(models.Model):
+			name = models.CharField(max_length=16)
+			age = models.IntegerField(default=1)
+存储数据
+	创建对象进行save()
+数据查询
+	模型.objects.all()
+	模型.objects.get(pk=2)
+更新
+	基于查询 save()
+删除
+	基于查询 delete()
+```
+
+django shell
+
+```
+python manage.py shell
+django终端 集成了django环境的python终端，通常用来调试
+eg:
+  from Two.models import Student
+  students = Student.objects.all()
+  for students in students.all():
+  	print(students.name)
+```
+
+数据级联 — 一对多
+
+```
+模型关系
+	class Grade(models.Model):
+		g_name = models.CharField(max_length=32)
+	class Student(models.Model):
+		s_name = models.CharField(max_length=16)
+		s_grade = models.ForeignKey(Grade)
+多获取一
+	就是一个书写的属性
+	eg：根据学生找班级名字
+        student = Student.objects.get(pk=2)
+        grade = student.s_grade
+        return HttpResponse(grade.g_name)
+一获取多
+	多的set
+	eg：根据班级找所有的学生
+		grade = Grade.objects.get(pk=2)
+		students = grade.student_set.all()
+		content = {
+            'students':students
+		}
+		return render(request,'students_list.html',content)
 ```
 
 
