@@ -34,7 +34,6 @@
 pip install django
 	pip install django==1.11.7   一定要使用==
 	pip install django==1.11.7 -i https://pypi.douban.com/simple  豆瓣源
-	pip install django==1.11.7 -i https://pypi.douban.com/simple  豆瓣源
 查看django是否安装成功
     pip freeze
     pip list
