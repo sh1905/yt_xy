@@ -160,7 +160,7 @@ Two下创建urls
 	{{ var }}
 再填坑
 	渲染模板的时候传递上下文进来 [上下文是一个字典]
-	content = {'key':'value'}
+	context = {'key':'value'}
 模板的兼容性很强
 	不传入不会报错，多传入也会自动优化掉
 浏览器不认模板
@@ -171,9 +171,9 @@ for支持
 render底层实现：应用场景-发送邮件，邮件的内容需要使用render方法来操作
 	加载
 		three_index = loader.get_template('three.html')
-		content = {'xxx':'xxxx'}
+		context = {'xxx':'xxxx'}
 	渲染
-		result = three_index.render(content=content)
+		result = three_index.render(context=context)
 		return HttpResponse(result)
 ```
 
@@ -272,7 +272,7 @@ class Meta：指定表名和字段名字
 ### 定义字段
 
 ```
-字段类型：Charfield，TextField，IntegerField，FloatField，BooleanField，DecimalField，NullBooleanrField，AutoField，FileField，ImageField
+字段类型：Charfield，TextField，IntegerField，FloatField，BooleanField，DecimalField，NullBooleanrField，AutoField，FileField，ImageField，DatetimeField
 字段约束：max_length，default，unique，index，primary_key，db_column
 ```
 
@@ -416,6 +416,57 @@ orders = Order.objects.filter(time__month=9)
 	Min：最小
 	Sum：求和
 	eg:Student.objects.aggregate(Max('age'))
+```
+
+### 跨关系查询
+
+```
+模型：
+	class Grade(models.Model):
+		g_name = models.CharField(max_length=16)
+	class Student(models.Model):
+		s_name = models.CharField(max_length=16)
+		s_grade = models.ForeignKey(Grade)
+使用：
+	模型类名__属性名__比较运算符，实际上就是处理数据库中的join
+	Grade ->g_name  Student ->s_name s_grade(外键)
+	
+	gf = Student.objects.filter(name='Tom')
+	print(gf[0].s_grade.name)
+	||
+	grades = Grade.objects.filter(Student__s_name='Tom')  查询Tom所在的班级
+```
+
+### F对象
+
+常适用于表内属性的值的比较
+
+```
+模型：
+	class Commpany(models.Model):
+		c_name = models.Charfield(max_length=16)
+		c_gril_num = models.IntegerField(default=5)
+		c_boy_num = models.IntegerField(default=3)
+获取字段信息，通常用在模型的自我属性比较，支持算术运算
+eg：男生比女生少的公司
+	companies = Company.objects.filter(c_boy_num__lt=F('c_gril_num'))
+eg：女生比男生多15个人
+	companies = Company.objects.filter(c_boy_num__lt=F('c_gril_num')-15)
+```
+
+### Q对象
+
+常适用于逻辑运算--与或非
+
+```
+eg：年龄小于25:
+	Student.objects.filter(Q(sage__lt=25))
+eg：男生人数多于5，女生人数多于10：
+	companies = Company.objects.filter(c_boy_num__gt=1).filter(c_gril_num__gt=5)
+	companies = Company.objects.filter(Q(c_boy_num__gt=5)|Q(c_girl_num__gt=10))
+支持逻辑运算--与或非
+eg：年龄大于等于25
+	Student.objects.filter(~Q(sage__lt=25))
 ```
 
 
